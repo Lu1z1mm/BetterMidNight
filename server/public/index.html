@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BetterMidNight - Radar Online & Dashboard</title>
+    <title>BetterMidNight - Modo Carreira Co-op & Radar</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -12,7 +12,7 @@
             box-sizing: border-box;
         }
         body {
-            background: #090a10 radial-gradient(circle at 50% 10%, #171b30 0%, #06070a 100%);
+            background: #080a12 radial-gradient(circle at 50% 10%, #161b33 0%, #05060a 100%);
             color: #e0e6ed;
             font-family: 'Rajdhani', sans-serif;
             min-height: 100vh;
@@ -25,7 +25,7 @@
             border-bottom: 2px solid #00f0ff;
             padding-bottom: 16px;
             margin-bottom: 24px;
-            box-shadow: 0 4px 20px rgba(0, 240, 255, 0.15);
+            box-shadow: 0 4px 25px rgba(0, 240, 255, 0.15);
         }
         .logo {
             font-family: 'Orbitron', sans-serif;
@@ -43,12 +43,16 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            padding: 6px 14px;
+            border-radius: 20px;
         }
         .dot {
-            width: 12px;
-            height: 12px;
+            width: 10px;
+            height: 10px;
             background: #00ff88;
             border-radius: 50%;
             box-shadow: 0 0 10px #00ff88;
@@ -56,47 +60,93 @@
         }
         @keyframes pulse {
             0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.85); }
+            50% { opacity: 0.4; transform: scale(0.8); }
         }
         .grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
             gap: 24px;
         }
-        @media (max-width: 900px) {
+        @media (max-width: 950px) {
             .grid { grid-template-columns: 1fr; }
         }
         .card {
-            background: rgba(18, 22, 36, 0.7);
+            background: rgba(16, 20, 34, 0.75);
             border: 1px solid rgba(0, 240, 255, 0.2);
             border-radius: 12px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
+            padding: 22px;
+            backdrop-filter: blur(12px);
         }
         .card h2 {
             font-family: 'Orbitron', sans-serif;
-            font-size: 18px;
+            font-size: 17px;
             color: #00f0ff;
             margin-bottom: 16px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
         }
-        .mission-box {
-            background: linear-gradient(135deg, rgba(255, 0, 85, 0.15), rgba(0, 240, 255, 0.05));
-            border-left: 4px solid #ff0055;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+        .career-banner {
+            background: linear-gradient(135deg, rgba(255, 0, 85, 0.2) 0%, rgba(0, 240, 255, 0.08) 100%);
+            border: 1px solid rgba(255, 0, 85, 0.4);
+            border-left: 6px solid #ff0055;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        .career-badge {
+            display: inline-block;
+            font-family: 'Orbitron', sans-serif;
+            background: #ff0055;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 900;
+            padding: 3px 10px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
         }
         .mission-title {
-            font-size: 22px;
-            font-weight: 700;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 24px;
+            font-weight: 900;
             color: #fff;
+            margin-bottom: 6px;
+        }
+        .rival-tag {
+            color: #ff0055;
+            font-weight: 700;
+            font-size: 17px;
+            margin-bottom: 8px;
         }
         .mission-desc {
-            font-size: 16px;
+            font-size: 15px;
             color: #a0aec0;
-            margin-top: 4px;
+            line-height: 1.4;
+            margin-bottom: 16px;
+        }
+        .mission-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 14px;
+        }
+        .metric-title {
+            font-size: 12px;
+            color: #718096;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+        .metric-val {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: #00ff88;
+            margin-top: 2px;
         }
         .table {
             width: 100%;
@@ -104,13 +154,13 @@
             margin-top: 10px;
         }
         .table th, .table td {
-            padding: 12px;
+            padding: 12px 14px;
             text-align: left;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
         .table th {
             color: #718096;
-            font-size: 14px;
+            font-size: 13px;
             text-transform: uppercase;
         }
         .speed-badge {
@@ -125,84 +175,140 @@
             color: #718096;
             font-size: 16px;
         }
+        .stat-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
         .stat-val {
             font-family: 'Orbitron', sans-serif;
-            font-size: 32px;
+            font-size: 26px;
             font-weight: 900;
             color: #00f0ff;
-            text-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+            text-shadow: 0 0 12px rgba(0, 240, 255, 0.3);
+            margin-top: 4px;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="logo">Better<span>MidNight</span> Cloud</div>
+        <div class="logo">Better<span>MidNight</span> Co-op</div>
         <div class="server-status">
             <div class="dot"></div>
-            <span>SERVIDOR ONLINE (RENDER)</span>
+            <span>SERVIDOR EM NUVEM ONLINE</span>
         </div>
     </div>
 
     <div class="grid">
-        <div class="card">
-            <h2>PILOTOS NA PISTA <span id="onlineCount">0 Online</span></h2>
-            <div class="mission-box">
-                <div class="mission-title" id="missionTitle">Midnight Sprint - San Diego</div>
-                <div class="mission-desc" id="checkpointInfo">Checkpoint Ativo: 1 / 5 | Lider: Nenhum</div>
+        <!-- Coluna Principal: Carreira e Pilotos -->
+        <div>
+            <!-- Banner da Carreira Co-op -->
+            <div class="career-banner">
+                <span class="career-badge" id="cityBadge">Campanha San Diego</span>
+                <div class="mission-title" id="missionTitle">Carregando Desafio...</div>
+                <div class="rival-tag" id="rivalName">Rival: Vanessa</div>
+                <div class="mission-desc" id="missionDesc">Apresente-se às ruas de San Diego e mostre para a Vanessa que a sua equipe não está de brincadeira.</div>
+
+                <div class="mission-metrics">
+                    <div>
+                        <div class="metric-title">Checkpoint</div>
+                        <div class="metric-val" id="metricCp">1 / 5</div>
+                    </div>
+                    <div>
+                        <div class="metric-title">Voltas</div>
+                        <div class="metric-val" id="metricLap">1 / 2</div>
+                    </div>
+                    <div>
+                        <div class="metric-title">Líder da Equipe</div>
+                        <div class="metric-val" id="metricLeader" style="color: #00f0ff;">-</div>
+                    </div>
+                    <div>
+                        <div class="metric-title">Prêmio da Vitória</div>
+                        <div class="metric-val" id="metricReward">+$2.500</div>
+                    </div>
+                </div>
             </div>
 
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Piloto</th>
-                        <th>Velocidade</th>
-                        <th>Posição (X, Y, Z)</th>
-                        <th>Ping</th>
-                    </tr>
-                </thead>
-                <tbody id="playerList">
-                    <tr>
-                        <td colspan="4" class="empty-state">Aguardando pilotos entrarem no jogo...</td>
-                    </tr>
-                </tbody>
-            </table>
+            <!-- Tabela de Pilotos -->
+            <div class="card">
+                <h2>PILOTOS NA PISTA <span id="onlineCount" style="color: #00ff88; font-size: 14px;">0 Online</span></h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Piloto</th>
+                            <th>Velocidade</th>
+                            <th>Posição Atual</th>
+                            <th>Ping</th>
+                        </tr>
+                    </thead>
+                    <tbody id="playerList">
+                        <tr>
+                            <td colspan="4" class="empty-state">Aguardando pilotos entrarem no jogo...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
-        <div class="card">
-            <h2>STATUS DO SERVIDOR</h2>
-            <div style="margin-bottom: 20px;">
-                <div style="font-size: 14px; color: #718096;">PILOTOS CONECTADOS</div>
-                <div class="stat-val" id="totalPlayersStat">0 / 32</div>
+        <!-- Coluna Lateral: Status e Banco da Equipe -->
+        <div>
+            <div class="card">
+                <h2>BANCO DA EQUIPE (CREW)</h2>
+                <div class="stat-box">
+                    <div style="font-size: 13px; color: #718096; font-weight: 700;">SALDO COMPARTILHADO</div>
+                    <div class="stat-val" id="teamCash">$5.000</div>
+                </div>
+                <div class="stat-box">
+                    <div style="font-size: 13px; color: #718096; font-weight: 700;">CORRIDAS VENCIDAS</div>
+                    <div class="stat-val" id="totalWins" style="color: #00ff88;">0 Vitórias</div>
+                </div>
+                <div class="stat-box">
+                    <div style="font-size: 13px; color: #718096; font-weight: 700;">PROGRESSO NA CIDADE</div>
+                    <div class="stat-val" id="cityProgress" style="font-size: 20px;">Fase 1 de 4</div>
+                </div>
             </div>
-            <div style="margin-bottom: 20px;">
-                <div style="font-size: 14px; color: #718096;">PROTOCOL</div>
-                <div style="font-size: 18px; font-weight: 700; color: #fff;">WSS (WebSockets 60Hz)</div>
-            </div>
-            <div>
-                <div style="font-size: 14px; color: #718096;">COMO JOGAR</div>
-                <p style="font-size: 14px; color: #cbd5e0; line-height: 1.5; margin-top: 6px;">
-                    Abra o seu Midnight Club 3 Remix no PC, execute o client e coloque o endereço deste servidor para entrar na mesma cidade com todos os outros pilotos!
+
+            <div class="card" style="margin-top: 24px;">
+                <h2>COMO FUNCIONA O CO-OP</h2>
+                <p style="font-size: 14px; color: #cbd5e0; line-height: 1.6;">
+                    🏎️ <strong>Vitória da Equipe:</strong> Se <em>qualquer</em> piloto da sua equipe cruzar a linha em 1º lugar, o prêmio em dinheiro é creditado para todos os membros e a história avança para o próximo rival!
                 </p>
             </div>
         </div>
     </div>
 
     <script>
-        // Atualiza os dados a cada 1 segundo
         async function updateStatus() {
             try {
                 const res = await fetch('/api/status');
                 const data = await res.json();
 
+                // Atualiza contadores
                 document.getElementById('onlineCount').textContent = `${data.onlinePlayers} Online`;
-                document.getElementById('totalPlayersStat').textContent = `${data.onlinePlayers} / ${data.maxPlayers}`;
 
-                if (data.mission) {
-                    document.getElementById('missionTitle').textContent = data.mission.title;
-                    document.getElementById('checkpointInfo').textContent = 
-                        `Checkpoint Ativo: ${data.mission.currentCheckpointIndex + 1} / ${data.mission.totalCheckpoints} | Líder: ${data.mission.leader || 'Nenhum'}`;
+                // Atualiza Carreira Co-op
+                if (data.career) {
+                    const c = data.career;
+                    const m = c.currentMission;
+
+                    document.getElementById('cityBadge').textContent = `Campanha ${c.city}`;
+                    document.getElementById('missionTitle').textContent = m.title;
+                    document.getElementById('rivalName').textContent = `⚔️ Rival: ${m.rival}`;
+                    document.getElementById('missionDesc').textContent = m.desc;
+
+                    document.getElementById('metricCp').textContent = `${m.checkpointIndex} / ${m.totalCheckpoints}`;
+                    document.getElementById('metricLap').textContent = `${m.currentLap} / ${m.totalLaps}`;
+                    document.getElementById('metricLeader').textContent = m.leader || '-';
+                    document.getElementById('metricReward').textContent = `+$${m.rewardCash.toLocaleString()}`;
+
+                    document.getElementById('teamCash').textContent = `$${c.teamCash.toLocaleString()}`;
+                    document.getElementById('totalWins').textContent = `${c.totalWins} Vitórias`;
+                    document.getElementById('cityProgress').textContent = `Missão ${c.missionIndex} de ${c.totalMissionsInCity}`;
                 }
 
+                // Tabela de Pilotos
                 const tbody = document.getElementById('playerList');
                 if (!data.players || data.players.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Aguardando pilotos entrarem no jogo...</td></tr>';

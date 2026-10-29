@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 const path = require('path');
+const career = require('./career');
 
 const app = express();
 const server = http.createServer(app);
@@ -13,29 +14,9 @@ const MAX_PLAYERS = 32;
 // Servir arquivos estaticos do Dashboard Web
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Estado Global do Servidor
+// Estado dos Pilotos Conectados
 let players = new Map(); // id -> { id, ws, gamertag, pos, rot, speed, ping, lastSeen }
 let nextPlayerId = 1;
-
-// Checkpoints oficiais mapeados nas ruas de Midnight Club 3
-const checkpoints = [
-    { id: 1, name: "Largada Downtown", x: 1390.0, y: -2.0, z: -125.0, radius: 20.0 },
-    { id: 2, name: "Avenida Principal", x: 1430.0, y: -2.0, z: -180.0, radius: 20.0 },
-    { id: 3, name: "Curva do Porto", x: 1195.0, y: -2.0, z: -350.0, radius: 25.0 },
-    { id: 4, name: "Subida do Viaduto", x: 720.0, y: 3.5, z: -260.0, radius: 20.0 },
-    { id: 5, name: "Reta Final San Diego", x: 1475.0, y: -1.5, z: 140.0, radius: 25.0 }
-];
-
-let activeMission = {
-    id: 1,
-    title: "Midnight Sprint - San Diego Open",
-    totalCheckpoints: checkpoints.length,
-    currentCheckpointIndex: 0,
-    currentCheckpoint: checkpoints[0],
-    active: true,
-    leader: "Nenhum",
-    lapsCompleted: 0
-};
 
 // Rota de Status / API REST
 app.get('/api/status', (req, res) => {
@@ -51,7 +32,7 @@ app.get('/api/status', (req, res) => {
         status: "online",
         onlinePlayers: playerList.length,
         maxPlayers: MAX_PLAYERS,
-        mission: activeMission,
+        career: career.getStateSummary(),
         players: playerList,
         uptime: process.uptime()
     });
@@ -89,15 +70,14 @@ wss.on('connection', (ws, req) => {
 
     console.log(`[+] Jogador conectado: ID ${playerId} (${req.socket.remoteAddress})`);
 
-    // Envia confirmacao de entrada e estado da missao
+    // Envia confirmacao de entrada e estado da carreira
     ws.send(JSON.stringify({
         type: "WELCOME",
         playerId: playerId,
-        mission: activeMission,
+        career: career.getStateSummary(),
         totalPlayers: players.size
     }));
 
-    // Trata mensagens recebidas
     ws.on('message', (message) => {
         try {
             const data = JSON.parse(message);
@@ -134,29 +114,44 @@ wss.on('connection', (ws, req) => {
                     break;
 
                 case "CHECKPOINT_HIT":
-                    console.log(`[MISSAO] '${player.gamertag}' alcancou o Checkpoint ${activeMission.currentCheckpointIndex + 1}!`);
-                    activeMission.leader = player.gamertag;
+                    const event = career.onCheckpointHit(player.gamertag);
+                    if (event.type === "NEXT_CHECKPOINT") {
+                        console.log(`[CHECKPOINT] '${player.gamertag}' passou no CP ${event.mission.checkpointIndex}/${event.mission.totalCheckpoints}`);
+                        broadcast({
+                            type: "MISSION_UPDATE",
+                            event: "NEXT_CHECKPOINT",
+                            career: career.getStateSummary(),
+                            player: player.gamertag
+                        });
+                    } else if (event.type === "NEXT_LAP") {
+                        console.log(`[VOLTA] '${player.gamertag}' completou uma volta! (Volta ${event.mission.currentLap}/${event.mission.totalLaps})`);
+                        broadcast({
+                            type: "MISSION_UPDATE",
+                            event: "NEXT_LAP",
+                            career: career.getStateSummary(),
+                            player: player.gamertag
+                        });
+                    } else if (event.type === "TEAM_VICTORY") {
+                        console.log(`=================================================`);
+                        console.log(`🏆 [VITORIA DA EQUIPE] '${player.gamertag}' VENCEU A CORRIDA!`);
+                        console.log(`   Missao Concluida: ${event.completedMission.title}`);
+                        console.log(`   Recompensa: +$${event.completedMission.rewardCash} para toda a equipe!`);
+                        console.log(`   Desbloqueio: ${event.completedMission.unlocks}`);
+                        console.log(`   Saldo da Equipe: $${event.teamCash}`);
+                        console.log(`=================================================`);
 
-                    if (activeMission.currentCheckpointIndex + 1 < activeMission.totalCheckpoints) {
-                        activeMission.currentCheckpointIndex++;
-                        activeMission.currentCheckpoint = checkpoints[activeMission.currentCheckpointIndex];
-                    } else {
-                        console.log(`[VITORIA] '${player.gamertag}' VENCEU A MISSAO!`);
-                        activeMission.lapsCompleted++;
-                        activeMission.currentCheckpointIndex = 0;
-                        activeMission.currentCheckpoint = checkpoints[0];
+                        broadcast({
+                            type: "TEAM_VICTORY",
+                            winner: player.gamertag,
+                            rewardCash: event.completedMission.rewardCash,
+                            unlocks: event.completedMission.unlocks,
+                            career: career.getStateSummary()
+                        });
                     }
-
-                    // Sincroniza novo checkpoint com todos
-                    broadcast({
-                        type: "MISSION_SYNC",
-                        mission: activeMission,
-                        leader: player.gamertag
-                    });
                     break;
             }
         } catch (err) {
-            // Ignora pacote corrompido
+            // Ignora pacote invalido
         }
     });
 
@@ -179,19 +174,23 @@ wss.on('connection', (ws, req) => {
 setInterval(() => {
     const now = Date.now();
     for (const [id, p] of players.entries()) {
-        if (now - p.lastSeen > 15000) { // 15s sem pacote
+        if (now - p.lastSeen > 15000) {
             p.ws.terminate();
             players.delete(id);
         }
     }
 }, 5000);
 
-// Iniciar servidor HTTP + WebSockets
+// Iniciar servidor
 server.listen(PORT, () => {
+    const summary = career.getStateSummary();
     console.log("=================================================");
     console.log(`  BETTER-MIDNIGHT CLOUD SERVER ONLINE!`);
     console.log(`  Porta: ${PORT} | Ambiente: Render Cloud`);
-    console.log(`  Missao Ativa: ${activeMission.title}`);
+    console.log(`  Cidade Ativa: ${summary.city} (Missao ${summary.missionIndex}/${summary.totalMissionsInCity})`);
+    console.log(`  Desafio Atual: ${summary.currentMission.title}`);
+    console.log(`  Rival: ${summary.currentMission.rival}`);
+    console.log(`  Banco da Equipe: $${summary.teamCash}`);
     console.log(`  Dashboard Web: http://localhost:${PORT}`);
     console.log("=================================================");
 });

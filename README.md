@@ -49,3 +49,4 @@ Basta abrir o cliente passando o link do Render (sem o `https://`):
 mc3_client.exe seu-projeto.onrender.com "MeuNick"
 ```
 Ou dar dois cliques no `jogar_multiplayer.bat` e digitar o link do Render quando pedir o IP!
+
