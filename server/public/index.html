@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BetterMidNight - Radar Online & Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #090a10 radial-gradient(circle at 50% 10%, #171b30 0%, #06070a 100%);
+            color: #e0e6ed;
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            padding: 24px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #00f0ff;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(0, 240, 255, 0.15);
+        }
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 28px;
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .logo span {
+            color: #ff0055;
+            text-shadow: 0 0 12px #ff0055;
+        }
+        .server-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .dot {
+            width: 12px;
+            height: 12px;
+            background: #00ff88;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00ff88;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+        @media (max-width: 900px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+        .card {
+            background: rgba(18, 22, 36, 0.7);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .card h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            color: #00f0ff;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .mission-box {
+            background: linear-gradient(135deg, rgba(255, 0, 85, 0.15), rgba(0, 240, 255, 0.05));
+            border-left: 4px solid #ff0055;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .mission-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .mission-desc {
+            font-size: 16px;
+            color: #a0aec0;
+            margin-top: 4px;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .table th, .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .table th {
+            color: #718096;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        .speed-badge {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            color: #00ff88;
+            font-size: 16px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #718096;
+            font-size: 16px;
+        }
+        .stat-val {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 32px;
+            font-weight: 900;
+            color: #00f0ff;
+            text-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">Better<span>MidNight</span> Cloud</div>
+        <div class="server-status">
+            <div class="dot"></div>
+            <span>SERVIDOR ONLINE (RENDER)</span>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h2>PILOTOS NA PISTA <span id="onlineCount">0 Online</span></h2>
+            <div class="mission-box">
+                <div class="mission-title" id="missionTitle">Midnight Sprint - San Diego</div>
+                <div class="mission-desc" id="checkpointInfo">Checkpoint Ativo: 1 / 5 | Lider: Nenhum</div>
+            </div>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Piloto</th>
+                        <th>Velocidade</th>
+                        <th>Posição (X, Y, Z)</th>
+                        <th>Ping</th>
+                    </tr>
+                </thead>
+                <tbody id="playerList">
+                    <tr>
+                        <td colspan="4" class="empty-state">Aguardando pilotos entrarem no jogo...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>STATUS DO SERVIDOR</h2>
+            <div style="margin-bottom: 20px;">
+                <div style="font-size: 14px; color: #718096;">PILOTOS CONECTADOS</div>
+                <div class="stat-val" id="totalPlayersStat">0 / 32</div>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <div style="font-size: 14px; color: #718096;">PROTOCOL</div>
+                <div style="font-size: 18px; font-weight: 700; color: #fff;">WSS (WebSockets 60Hz)</div>
+            </div>
+            <div>
+                <div style="font-size: 14px; color: #718096;">COMO JOGAR</div>
+                <p style="font-size: 14px; color: #cbd5e0; line-height: 1.5; margin-top: 6px;">
+                    Abra o seu Midnight Club 3 Remix no PC, execute o client e coloque o endereço deste servidor para entrar na mesma cidade com todos os outros pilotos!
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Atualiza os dados a cada 1 segundo
+        async function updateStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+
+                document.getElementById('onlineCount').textContent = `${data.onlinePlayers} Online`;
+                document.getElementById('totalPlayersStat').textContent = `${data.onlinePlayers} / ${data.maxPlayers}`;
+
+                if (data.mission) {
+                    document.getElementById('missionTitle').textContent = data.mission.title;
+                    document.getElementById('checkpointInfo').textContent = 
+                        `Checkpoint Ativo: ${data.mission.currentCheckpointIndex + 1} / ${data.mission.totalCheckpoints} | Líder: ${data.mission.leader || 'Nenhum'}`;
+                }
+
+                const tbody = document.getElementById('playerList');
+                if (!data.players || data.players.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Aguardando pilotos entrarem no jogo...</td></tr>';
+                } else {
+                    tbody.innerHTML = data.players.map(p => `
+                        <tr>
+                            <td style="font-weight: 700; color: #fff;">🏎️ ${p.gamertag}</td>
+                            <td><span class="speed-badge">${Math.round(p.speed)} km/h</span></td>
+                            <td style="color: #a0aec0; font-family: monospace;">(${p.pos.x.toFixed(1)}, ${p.pos.y.toFixed(1)}, ${p.pos.z.toFixed(1)})</td>
+                            <td style="color: #00ff88;">${p.ping || 10} ms</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error("Erro ao atualizar status:", err);
+            }
+        }
+
+        setInterval(updateStatus, 1000);
+        updateStatus();
+    </script>
+</body>
+</html>
